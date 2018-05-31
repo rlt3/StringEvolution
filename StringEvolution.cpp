@@ -13,8 +13,8 @@ minimum (int a, int b, int c)
 
 class Chromosome {
 public:
-    std::string genes;
     double fitness_value;
+    std::string genes;
 
     /* initializer constructor */
     Chromosome ()
@@ -109,12 +109,12 @@ bool chromosome_compare (const Chromosome &a, const Chromosome &b)
 }
 
 struct PopulationConfig {
-    int population_size;
+    unsigned population_size;
     double elite_rate;
     double cull_thresh;
     double mutate_rate;
     double crossover_rate;
-    int gen_limit;
+    unsigned gen_limit;
     bool quiet;
     bool constant_width;
     std::string target;
@@ -130,7 +130,7 @@ public:
         const unsigned int constant_width = config.constant_width;
         chromosomes.reserve(config.population_size);
         next_generation.reserve(config.population_size);
-        for (int i = 0; i < config.population_size; i++)
+        for (unsigned i = 0; i < config.population_size; i++)
             chromosomes.push_back(Chromosome(num_genes, constant_width, rand));
         this->fitness();
     }
@@ -323,7 +323,7 @@ args_get_config (int argc, char **argv)
     config.target = std::string(argv[argc - 1]);
 
     if (!config.quiet) {
-        printf("population     = %0.2d\n"
+        printf("population     = %.2d\n"
                "elite_rate     = %0.2lf\n"
                "cull_thresh    = %0.2lf\n"
                "mutate_rate    = %0.2lf\n"
@@ -346,7 +346,7 @@ main (int argc, char **argv)
     config = args_get_config(argc, argv);
     Population pop(config, rand);
 
-    for (int i = 0 ;; i++) {
+    for (unsigned i = 0 ;; i++) {
         printf("%s", pop.best().genes.c_str());
         if (!config.quiet)
             printf(" %lf", pop.best().fitness_value);
