@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "arg.h"
 
-int
+static inline int
 minimum (int a, int b, int c)
 {
     return std::min(std::min(a, b), c);
@@ -153,39 +153,26 @@ public:
         static std::uniform_real_distribution<double> range(0.0, 1.0);
         const int num_elite = config.elite_rate * config.population_size;
         const int threshold = config.cull_thresh * chromosomes.size();
-        Chromosome c1, c2;
-
-        next_generation.clear();
+        Chromosome father, mother, child;
 
         /* the top performers (elite) automatically go to next generation */
+        next_generation.clear();
         for (int i = 0; i < num_elite; i++)
             next_generation.push_back(chromosomes[i]);
 
-        while (1) {
-            c1 = this->select(threshold);
-            c2 = this->select(threshold);
+        father = next_generation.front();
+        while (next_generation.size() < config.population_size) {
+            mother = this->select(threshold);
 
             if (range(rand) < config.crossover_rate) {
-                auto pair = this->crossover(c1, c2);
-                c1 = pair.first;
-                c2 = pair.second;
+                child = this->crossover(father, mother);
             }
 
             if (range(rand) < config.mutate_rate) {
-                c1 = this->mutate(c1);
+                child = this->mutate(mother);
             }
 
-            if (range(rand) < config.mutate_rate) {
-                c2 = this->mutate(c2);
-            }
-
-            next_generation.push_back(c1);
-            if (next_generation.size() == config.population_size)
-                break;
-
-            next_generation.push_back(c2);
-            if (next_generation.size() == config.population_size)
-                break;
+            next_generation.push_back(child);
         }
 
         chromosomes = next_generation;
@@ -208,21 +195,25 @@ protected:
     }
 
     /* crossover two chromosomes */
-    std::pair<Chromosome, Chromosome>
+    Chromosome
     crossover (Chromosome c1, Chromosome c2)
     {
         /* locus can only be us to the length of the smallest string */
-        const int c1_len = c1.genes.length();
-        const int c2_len = c2.genes.length();
+        static std::uniform_int_distribution<int> direction(0, 1);
         const int max_locus = std::min(c1.genes.length(), c2.genes.length());
         std::uniform_int_distribution<int> range(0, max_locus);
         const int locus = range(rand);
+        Chromosome child;
 
-        /* this modifies the lengths of the two strings */
-        c1.genes = c1.genes.substr(0, locus) + c2.genes.substr(locus);
-        c2.genes = c2.genes.substr(0, locus) + c1.genes.substr(locus);
+        /* this crossover can modify length of string */
+        if (direction(rand) == 1) {
+            child.genes = c1.genes.substr(0, locus) + c2.genes.substr(locus);
+            return c1;
+        } else {
+            child.genes = c2.genes.substr(0, locus) + c1.genes.substr(locus);
+        }
 
-        return std::make_pair(c1, c2);
+        return c1;
     }
 
     /* mutate a the chromosome with a random gene */
