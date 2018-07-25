@@ -208,12 +208,11 @@ protected:
         /* this crossover can modify length of string */
         if (direction(rand) == 1) {
             child.genes = c1.genes.substr(0, locus) + c2.genes.substr(locus);
-            return c1;
         } else {
             child.genes = c2.genes.substr(0, locus) + c1.genes.substr(locus);
         }
 
-        return c1;
+        return child;
     }
 
     /* mutate a the chromosome with a random gene */
